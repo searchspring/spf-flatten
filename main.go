@@ -14,7 +14,7 @@ func main() {
 	envs := map[string]string{
 		"aws_Region":      os.Getenv("AWS_REGION"),
 		"template_Domain": os.Getenv("TEMPLATE_DOMAIN"),
-		"update_Domain":   os.Getenv("UPDATE_NAME"),
+		"update_Domain":   os.Getenv("UPDATE_DOMAIN"),
 		"test_IP":         os.Getenv("TEST_IP"),
 		"zoneID":          os.Getenv("ZONEID"),
 	}
@@ -52,7 +52,7 @@ func main() {
 	// Update Route53
 	r53updater, err := r53.New(r53.Route53Updater{
 		Region:         envs["aws_Region"],
-		TemplateDomain: envs["templateDomain"],
+		TemplateDomain: envs["template_Domain"],
 		UpdateDomain:   envs["update_Domain"],
 		Zoneid:         envs["zone_ID"],
 	})
