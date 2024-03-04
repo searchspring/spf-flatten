@@ -179,7 +179,7 @@ func TestSPFRecordsAreValid(t *testing.T) {
 
 	_, err := dns.SPFRecordsAreValid(splitRecs)
 	require.Nil(t, err)
-	splitRecs["domain1"] = "v=spf1 include:bogus ~all"
+	splitRecs[domain1] = "v=spf1 include:bogus ~all"
 	_, err = dns.SPFRecordsAreValid(splitRecs)
 	require.NotNil(t, err)
 

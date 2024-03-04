@@ -64,7 +64,7 @@ func (s DNS) SplitSPFRecords(records []string) (txtRecs map[string]string) {
 func SPFRecordIsValid(dns *TestResolver, ip string, domain string) bool {
 	ipaddr := net.ParseIP(ip)
 	result, err := spf.CheckHostWithSender(ipaddr, "helo", fmt.Sprintf("sender@%s", strings.Trim(domain, ".")), spf.WithResolver(dns))
-	if result == "pass" {
+	if result == spf.Pass {
 		return true
 	}
 	fmt.Printf("IP: %v\nDomain: %v\nResult: %v\nError: %v\nDNS: %+v\n\n", ip, domain, result, err, dns)
