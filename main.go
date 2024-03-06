@@ -55,6 +55,7 @@ func main() {
 		TemplateDomain: envs["template_Domain"],
 		UpdateDomain:   envs["update_Domain"],
 		Zoneid:         envs["zone_ID"],
+		DryRun:         true,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -64,7 +65,7 @@ func main() {
 		fmt.Printf("%v\tTXT\t%v\n\n", domain, rec)
 		err = r53updater.UpdateTXTRecord(domain, rec)
 		if err != nil {
-			log.Fatalf("Update Record Fail: %v", err)
+			log.Printf("Update Record Fail: %v\n", err)
 		}
 	}
 }

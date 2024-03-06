@@ -16,6 +16,7 @@ type Route53Updater struct {
 	TemplateDomain string
 	UpdateDomain   string
 	Zoneid         string
+	DryRun         bool
 	Route53        Route53Interface
 }
 
@@ -50,7 +51,7 @@ func (s Route53Updater) NewDefaultRoute53Interface() (Route53Interface, error) {
 
 }
 
-func (s Route53Updater) UpdateTXTRecord(recordName, newValue string) error {
+func (s *Route53Updater) UpdateTXTRecord(recordName, newValue string) error {
 
 	// Retrieve the existing record
 	existingRecord, err := s.Route53.ListResourceRecordSetsWithContext(context.TODO(), &route53.ListResourceRecordSetsInput{
@@ -68,34 +69,39 @@ func (s Route53Updater) UpdateTXTRecord(recordName, newValue string) error {
 			break
 		}
 	}
+	if targetRecord == nil {
+		return fmt.Errorf("TXT record for %s not found", recordName)
+	}
 
 	// If the TXT record is found, update it; otherwise, create a new record
-	if targetRecord != nil {
-		targetRecord.ResourceRecords = []*route53.ResourceRecord{
-			{
-				Value: aws.String(newValue),
-			},
-		}
-
-		_, err = s.Route53.ChangeResourceRecordSetsWithContext(context.TODO(), &route53.ChangeResourceRecordSetsInput{
-			ChangeBatch: &route53.ChangeBatch{
-				Changes: []*route53.Change{
-					{
-						Action:            aws.String("UPSERT"),
-						ResourceRecordSet: targetRecord,
-					},
-				},
-			},
-			HostedZoneId: aws.String(s.Zoneid),
-		})
-		if err != nil {
-			return err
-		}
-
-		fmt.Println("TXT record updated successfully")
-	} else {
-		log.Fatal("TXT record not found")
+	targetRecord.ResourceRecords = []*route53.ResourceRecord{
+		{
+			Value: aws.String(newValue),
+		},
 	}
+
+	changeBatch := &route53.ChangeBatch{
+		Changes: []*route53.Change{
+			{
+				Action:            aws.String("UPSERT"),
+				ResourceRecordSet: targetRecord,
+			},
+		},
+	}
+	input := &route53.ChangeResourceRecordSetsInput{
+		ChangeBatch:  changeBatch,
+		HostedZoneId: aws.String(s.Zoneid),
+	}
+	if s.DryRun {
+		fmt.Printf("DryRun TXT record not updated\n: %v\n", input)
+		return nil
+	}
+	_, err = s.Route53.ChangeResourceRecordSetsWithContext(context.TODO(), input)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("TXT record updated successfully")
 
 	return nil
 }
