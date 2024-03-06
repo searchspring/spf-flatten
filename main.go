@@ -16,7 +16,7 @@ func main() {
 		"template_Domain": os.Getenv("TEMPLATE_DOMAIN"),
 		"update_Domain":   os.Getenv("UPDATE_DOMAIN"),
 		"test_IP":         os.Getenv("TEST_IP"),
-		"zoneID":          os.Getenv("ZONEID"),
+		"zone_ID":         os.Getenv("ZONEID"),
 	}
 
 	for k, v := range envs {
