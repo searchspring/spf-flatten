@@ -3,7 +3,6 @@ package route53
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -39,9 +38,8 @@ func New(s Route53Updater) (Route53Updater, error) {
 }
 
 func (s Route53Updater) NewDefaultRoute53Interface() (Route53Interface, error) {
-	// Create a new AWS session
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(s.Region),
+	sess, err := session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
 	})
 	if err != nil {
 		return nil, err
