@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"strconv"
 	"strings"
 
 	"blitiri.com.ar/go/spf"
@@ -71,6 +70,29 @@ func SPFRecordIsValid(dns *TestResolver, ip string, domain string) bool {
 	return false
 }
 
+func extractIPAddressFromRecord(spfRecord string) net.IP {
+	for _, mech := range strings.Split(spfRecord, " ") {
+		if !(strings.HasPrefix(mech, "ip4:") || strings.HasPrefix(mech, "ip6:")) {
+			continue
+		}
+		ipString := strings.TrimPrefix(strings.TrimPrefix(mech, "ip4:"), "ip6:")
+		var ip net.IP
+		if !strings.Contains(ipString, "/") {
+			ip = net.ParseIP(ipString)
+		} else {
+			var err error
+			ip, _, err = net.ParseCIDR(ipString)
+			if err != nil {
+				fmt.Println("Error parsing CIDR:", err)
+				break
+			}
+			ip[len(ip)-1]++
+		}
+		return ip
+	}
+	return nil
+}
+
 // Test validity for a collection of SPF records without doing a real DNS lookup and using an IP pulled from the record
 func (s DNS) SPFRecordsAreValid(txtRecs map[string]string) (bool, error) {
 
@@ -84,52 +106,18 @@ func (s DNS) SPFRecordsAreValid(txtRecs map[string]string) (bool, error) {
 
 	// Check all spf records for valid syntax
 	for domain, rec := range txtRecs {
-		var ipaddr string
-		for _, mech := range strings.Split(rec, " ") {
-			// Find an IPv4 mech and use an IP from it
-			if strings.HasPrefix(mech, "ip4:") {
-				ipaddr = strings.TrimPrefix(mech, "ip4:")
-				if strings.Contains(ipaddr, "/") {
-					ipaddr, _, _ = strings.Cut(ipaddr, "/")
-					var newipaddr string
-					for i, octet := range strings.Split(ipaddr, ".") {
-						if i == 3 {
-							num, _ := strconv.Atoi(octet)
-							newipaddr = strings.Join([]string{newipaddr, strconv.Itoa(num + 1)}, ".")
-						} else {
-							newipaddr = strings.Join([]string{newipaddr, octet}, ".")
-						}
-					}
-				}
-				break
-			}
-			// Or Find an IPv6 mech and use an IP from it
-			if strings.HasPrefix(mech, "ip6:") {
-				ipaddr = strings.TrimPrefix(mech, "ip6:")
-				var groupings []string
-				if strings.Contains(ipaddr, "/") {
-					ipaddr, _, _ = strings.Cut(ipaddr, "::")
-					groupings = strings.Split(ipaddr, ":")
-					for len(groupings) < 8 {
-						groupings = append(groupings, "0000")
-					}
-				}
-				ipaddr = strings.Join(groupings, ":")
-				break
-			}
-		}
-		// Didn't find a IPv4 or IPv6 mech
-		if ipaddr == "" {
-			ipaddr = s.TestIP
+		ip := extractIPAddressFromRecord(rec)
+		ipaddr := s.TestIP
+		if ip != nil {
+			ipaddr = ip.String()
 		}
 		// Actually validate the record
-		if SPFRecordIsValid(dnsRes, ipaddr, domain) {
-			fmt.Printf("%v:Valid\n", domain)
-		} else {
+		if !SPFRecordIsValid(dnsRes, ipaddr, domain) {
 			fmt.Printf("%v:InValid\n", domain)
 			fmt.Printf("IPAddr:%v\n", ipaddr)
 			return false, fmt.Errorf("invalid record for domain: %v", domain)
 		}
+		fmt.Printf("%v:Valid\n", domain)
 	}
 	return true, nil
 }
