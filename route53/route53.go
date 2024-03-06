@@ -50,7 +50,7 @@ func (s Route53Updater) NewDefaultRoute53Interface() (Route53Interface, error) {
 
 }
 
-func (s Route53Updater) UpdateTXTRecord(zoneID, recordName, newValue string) error {
+func (s Route53Updater) UpdateTXTRecord(recordName, newValue string) error {
 
 	// Retrieve the existing record
 	existingRecord, err := s.Route53.ListResourceRecordSetsWithContext(context.TODO(), &route53.ListResourceRecordSetsInput{
@@ -86,7 +86,7 @@ func (s Route53Updater) UpdateTXTRecord(zoneID, recordName, newValue string) err
 					},
 				},
 			},
-			HostedZoneId: aws.String(zoneID),
+			HostedZoneId: aws.String(s.Zoneid),
 		})
 		if err != nil {
 			return err

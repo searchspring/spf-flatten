@@ -59,10 +59,10 @@ func TestUpdateTXTRecord(t *testing.T) {
 			},
 		},
 	}
-	err := route53updater.UpdateTXTRecord(zoneid, "example.com", "v=spf1 ip:192.168.1.1 ~all")
+	err := route53updater.UpdateTXTRecord("example.com", "v=spf1 ip:192.168.1.1 ~all")
 	require.Nil(t, err)
 	route53updater.Zoneid = "bogus"
-	err = route53updater.UpdateTXTRecord(zoneid, "example.com", "v=spf1 ip:192.168.1.1 ~all")
+	err = route53updater.UpdateTXTRecord("example.com", "v=spf1 ip:192.168.1.1 ~all")
 	require.Error(t, err, fmt.Errorf("Zone not found."))
 
 }

@@ -62,7 +62,7 @@ func main() {
 
 	for domain, rec := range txtRecs {
 		fmt.Printf("%v\tTXT\t%v\n\n", domain, rec)
-		err = r53updater.UpdateTXTRecord(envs["zone_ID"], domain, rec)
+		err = r53updater.UpdateTXTRecord(domain, rec)
 		if err != nil {
 			log.Fatalf("Update Record Fail: %v", err)
 		}
