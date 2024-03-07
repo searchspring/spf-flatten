@@ -247,3 +247,41 @@ func TestSplitSPFRecords(t *testing.T) {
 		t.Errorf("Unexpected result. Got %v, \n\nexpected %v", result, expectedTxtRecs)
 	}
 }
+
+func TestExtractIPAddressFromSPF(t *testing.T) {
+	tests := []struct {
+		name       string
+		spfRecord  string
+		expectedIP string
+	}{
+		{
+			name:       "IPv4 Mechanism Mask",
+			spfRecord:  "v=spf1 ip4:192.0.2.1/32",
+			expectedIP: "192.0.2.2",
+		},
+		{
+			name:       "IPv4 Mechanism",
+			spfRecord:  "v=spf1 ip4:192.0.2.1",
+			expectedIP: "192.0.2.1",
+		},
+		{
+			name:       "IPv6 Mechanism Mask",
+			spfRecord:  "v=spf1 ip6:2001:0db8:85a3:0000:0000:8a2e:0370:7334/64",
+			expectedIP: "2001:db8:85a3::8a2e:370:7335",
+		},
+		{
+			name:       "IPv6 Mechanism",
+			spfRecord:  "v=spf1 ip6:2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+			expectedIP: "2001:db8:85a3::8a2e:370:7334",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actualIP := extractIPAddressFromRecord(test.spfRecord)
+			if actualIP.String() != test.expectedIP {
+				t.Errorf("Expected IP: %s, but got: %s", test.expectedIP, actualIP)
+			}
+		})
+	}
+}
