@@ -11,12 +11,11 @@ import (
 )
 
 type Route53Updater struct {
-	Region         string
-	TemplateDomain string
-	UpdateDomain   string
-	Zoneid         string
-	DryRun         bool
-	Route53        Route53Interface
+	Region       string
+	UpdateDomain string
+	Zoneid       string
+	DryRun       bool
+	Route53      Route53Interface
 }
 
 type Route53Interface interface {

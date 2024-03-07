@@ -37,17 +37,16 @@ func (s MockRoute53Interface) ChangeResourceRecordSetsWithContext(cxt context.Co
 func TestUpdateTXTRecord(t *testing.T) {
 	zoneid := "ZONEID"
 	route53updater := Route53Updater{
-		Region:         "us-east-1",
-		TemplateDomain: "_template.example.com",
-		UpdateDomain:   "example.com",
-		Zoneid:         zoneid,
+		Region:       "us-east-1",
+		UpdateDomain: "example.com.",
+		Zoneid:       zoneid,
 		Route53: MockRoute53Interface{
 			Zoneid:                      zoneid,
 			ListResourceRecordSetsInput: &route53.ListResourceRecordSetsInput{HostedZoneId: aws.String(zoneid)},
 			ListResourceRecordSetsOutput: &route53.ListResourceRecordSetsOutput{
 				IsTruncated:        aws.Bool(false),
 				MaxItems:           aws.String("100"),
-				ResourceRecordSets: []*route53.ResourceRecordSet{{Name: aws.String("example.com"), Type: aws.String("TXT")}},
+				ResourceRecordSets: []*route53.ResourceRecordSet{{Name: aws.String("example.com."), Type: aws.String("TXT")}},
 			},
 			ChangeResourceRecordSetsInput: &route53.ChangeResourceRecordSetsInput{HostedZoneId: aws.String(zoneid)},
 			ChangeResourceRecordSetsOutput: &route53.ChangeResourceRecordSetsOutput{
@@ -59,30 +58,28 @@ func TestUpdateTXTRecord(t *testing.T) {
 			},
 		},
 	}
-	err := route53updater.UpdateTXTRecord("example.com", "v=spf1 ip:192.168.1.1 ~all")
+	err := route53updater.UpdateTXTRecord("example.com.", "v=spf1 ip:192.168.1.1 ~all")
 	require.Nil(t, err)
 	route53updater.Zoneid = "bogus"
-	err = route53updater.UpdateTXTRecord("example.com", "v=spf1 ip:192.168.1.1 ~all")
+	err = route53updater.UpdateTXTRecord("example.com.", "v=spf1 ip:192.168.1.1 ~all")
 	require.Error(t, err, fmt.Errorf("Zone not found."))
 
 }
 
 func TestNew(t *testing.T) {
 	_, err := New(Route53Updater{
-		Region:         "us-east-1",
-		TemplateDomain: "_template.example.com",
-		UpdateDomain:   "example.com",
-		Zoneid:         "ZONEID",
+		Region:       "us-east-1",
+		UpdateDomain: "example.com.",
+		Zoneid:       "ZONEID",
 	})
 	require.Nil(t, err)
 }
 
 func TestNewDefaultRoute53Interface(t *testing.T) {
 	route53updater, _ := New(Route53Updater{
-		Region:         "us-east-1",
-		TemplateDomain: "_template.example.com",
-		UpdateDomain:   "example.com",
-		Zoneid:         "ZONEID",
+		Region:       "us-east-1",
+		UpdateDomain: "example.com.",
+		Zoneid:       "ZONEID",
 	})
 	_, err := route53updater.NewDefaultRoute53Interface()
 	require.Nil(t, err)
