@@ -51,11 +51,10 @@ func main() {
 
 	// Update Route53
 	r53updater, err := r53.New(r53.Route53Updater{
-		Region:         envs["aws_Region"],
-		TemplateDomain: envs["template_Domain"],
-		UpdateDomain:   envs["update_Domain"],
-		Zoneid:         envs["zone_ID"],
-		DryRun:         true,
+		Region:       envs["aws_Region"],
+		UpdateDomain: envs["update_Domain"],
+		Zoneid:       envs["zone_ID"],
+		DryRun:       true,
 	})
 	if err != nil {
 		log.Fatal(err)

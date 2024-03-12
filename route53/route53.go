@@ -11,12 +11,11 @@ import (
 )
 
 type Route53Updater struct {
-	Region         string
-	TemplateDomain string
-	UpdateDomain   string
-	Zoneid         string
-	DryRun         bool
-	Route53        Route53Interface
+	Region       string
+	UpdateDomain string
+	Zoneid       string
+	DryRun       bool
+	Route53      Route53Interface
 }
 
 type Route53Interface interface {
@@ -68,7 +67,15 @@ func (s *Route53Updater) UpdateTXTRecord(recordName, newValue string) error {
 		}
 	}
 	if targetRecord == nil {
-		return fmt.Errorf("TXT record for %s not found", recordName)
+		targetRecord = &route53.ResourceRecordSet{
+			Name: aws.String(recordName),
+			Type: aws.String(route53.RRTypeTxt),
+		}
+	}
+
+	err = targetRecord.Validate()
+	if err != nil {
+		return err
 	}
 
 	// If the TXT record is found, update it; otherwise, create a new record
